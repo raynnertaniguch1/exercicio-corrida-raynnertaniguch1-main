@@ -75,6 +75,7 @@ public class Tela {
     competidores = LeitorDeCorredores.lerCorredores("dados/corredores.txt");
     threads = new ArrayList<>();
     }
+
     /**
      * Cria os componentes da tela
      */
