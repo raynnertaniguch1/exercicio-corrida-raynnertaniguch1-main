@@ -93,26 +93,45 @@ public class Tela {
     }
 
     private void iniciarCorrida() {
-        try {
-            distanciaDaCorrida = Integer.parseInt(caixaTextoDistancia.getText());
-        } catch (Exception e) {
-            JOptionPane.showMessageDialog(janela, "A distância da corrida deve ser um número inteiro.", "Erro", JOptionPane.ERROR_MESSAGE);
-            return;
+    try {
+        distanciaDaCorrida = Integer.parseInt(caixaTextoDistancia.getText());
+    } catch (Exception e) {
+        JOptionPane.showMessageDialog(janela, "A distância da corrida deve ser um número inteiro.", "Erro", JOptionPane.ERROR_MESSAGE);
+        return;
+    }
+
+    if (distanciaDaCorrida > 0) {
+        threads.clear();
+
+        for (Competidor c : competidores) {
+            c.prepararParaNovaCorrida(distanciaDaCorrida);
+            Thread t = new Thread(c);
+            threads.add(t);
         }
 
-        if (distanciaDaCorrida > 0) {
-            threads.clear();
-            for (Competidor c : competidores) {
-                c.prepararParaNovaCorrida(distanciaDaCorrida);
-                Thread t = new Thread(c);
-                threads.add(t);
-            }
-            for (Thread t : threads) {
-                t.start();
-            }
-            painelPrincipal.repaint();
+        for (Thread t : threads) {
+            t.start();
         }
+
+        // PASSO 4: Thread de atualização automática da corrida
+        Thread atualizador = new Thread(
+            new Runnable() {
+                public void run() {
+                    while (aindaHaCompetidoresCorrendo()) {
+                        painelPrincipal.repaint();
+                        try {
+                            Thread.sleep(100);
+                        } catch (InterruptedException e) {
+                            break;
+                        }
+                    }
+                }
+            }
+        );
+        atualizador.start();
     }
+    }
+
 
     private void interromperCorrida() {
         for (Thread t : threads) {
@@ -127,5 +146,15 @@ public class Tela {
     public void exibir() {
     janela.setVisible(true);
     janela.setExtendedState(JFrame.MAXIMIZED_BOTH);
-}
+    }
+
+    private boolean aindaHaCompetidoresCorrendo() {
+    for (Competidor c : competidores) {
+        if (c.estaCorrendo()) {
+            return true;
+        }
+    }
+    return false;
+    }
+
 }
